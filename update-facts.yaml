@@ -1,0 +1,27 @@
+---
+#
+# Set cfacts to dict of key: value
+#  cfacts:
+#    role: my-role
+#
+# Set run_puppet to true for agent run
+#
+- name: Update static facts
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Update ericsson.txt file
+      lineinfile:
+        path: /etc/facter/facts.d/ericsson.txt
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+      with_dict: "{{ cfacts | default({}) }}"
+      when: cfacts is defined
+
+    - name: Run puppet
+      command: /opt/puppet/bin/puppet agent -t --color=false
+      with_sequence: count={{ puppet_runs }}
+      register: puppet_out
+      when: puppet_runs is defined
+      failed_when: puppet_out.rc == 1
+      changed_when: puppet_out.rc > 1

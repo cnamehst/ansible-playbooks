@@ -1,0 +1,15 @@
+---
+
+- name: Update SuSE family OS
+  zypper:
+    name: "{{ packages }}"
+    state: latest
+    disable_recommends: no
+    update_cache: yes
+
+- name: Check if reboot is required
+  shell: |
+    uname -r
+    rpm -q --last kernel-default | head -1 | awk -F'[-. ]' '{printf "%s.%s.%s-%s.%s-%s\n",$3,$4,$5,$6,$7,$2}'
+  register: bootreq
+  changed_when: bootreq.stdout_lines[0] != bootreq.stdout_lines[1]

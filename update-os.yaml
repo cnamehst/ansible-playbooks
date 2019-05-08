@@ -1,0 +1,11 @@
+---
+
+- name: Update Linux operating system
+  hosts: all
+  tasks:
+    - name: Include OS family tasks
+      include_tasks: "update-os-tasks/{{ ansible_os_family }}.yaml"
+
+    - name: Include reboot tasks
+      include_tasks: "update-os-tasks/reboot.yaml"
+      when: reboot == "always" or ( bootreq.changed and reboot != "never" )

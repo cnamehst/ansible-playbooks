@@ -1,0 +1,14 @@
+---
+
+- name: Update RedHat family OS
+  yum:
+    name: "{{ packages }}"
+    state: latest
+    update_cache: yes
+
+- name: Check if reboot is required
+  shell: |
+    echo kernel-`uname -r`
+    rpm -q --last kernel | head -1 | awk '{print $1}'
+  register: bootreq
+  changed_when: bootreq.stdout_lines[0] != bootreq.stdout_lines[1]

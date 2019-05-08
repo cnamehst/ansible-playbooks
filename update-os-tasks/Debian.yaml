@@ -1,0 +1,14 @@
+---
+
+- name: Update Debian family OS
+  apt:
+    name: "{{ packages }}"
+    update_cache: yes
+    state: latest
+    force_apt_get: true
+
+- name: Check if reboot is required
+  stat:
+    path: /var/run/reboot-required
+  register: bootreq
+  changed_when: bootreq.stat.exists
