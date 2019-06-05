@@ -1,15 +1,4 @@
 ---
-- name: Remove problem packages with RH 7.3
-   yum:
-        name: "{{ item }}"
-        state: absent
-        with_items:
-        - rhn-client-tools
-        - marco 
-        - mate-applets 
-        - gss-lxux-globalprofile-large 
-        - gnome-packagekit 
-
 
 - name: Update RedHat family OS
   yum:
