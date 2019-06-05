@@ -1,10 +1,20 @@
 ---
+- name: Reboot the server and wait for it to come back up.
+      reboot:
+
+- name: Fix repos
+  become: true
+  tasks:
+    - name: replace in repo files
+      shell: sed -i 's/rhel7\.5/latest/g' /etc/yum.repos.d/* 
+      shell: sed -i 's/\.5/\.6/g' /etc/yum.repos.d/epel.repo 
 
 - name: Update RedHat family OS
   yum:
     name: "{{ packages }}"
     state: latest
     update_cache: yes
+    exclude: XenDesktopVDA
 
 - name: Check if reboot is required
   shell: |
