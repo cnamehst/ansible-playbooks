@@ -1,6 +1,6 @@
 ---
 - name: Reboot the server and wait for it to come back up.
-      reboot:
+      register: bootreq
 
 - name: Fix repos
   become: true
