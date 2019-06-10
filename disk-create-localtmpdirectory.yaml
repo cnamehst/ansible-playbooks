@@ -1,0 +1,19 @@
+---
+- name: Create localtmp if not exists
+  hosts: all
+  gather_facts: false
+  tasks:
+
+  - name: Check that the somefile.conf exists
+    stat:
+      path: /local
+    register: stat_result
+
+  - name: Create the file, if it doesnt exist already
+    file:
+      path: /local/tmp
+      state: directory
+      owner: root
+      group: root
+      mode: '1777'
+    when: stat_result.stat.exists == True
