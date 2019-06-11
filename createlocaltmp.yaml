@@ -1,0 +1,11 @@
+---
+- name: Testing some
+  hosts: all
+  gather_facts: false
+  tasks:
+# Check if local exists
+
+  
+  - name: Create local tmp directory
+    when: localtmp.stat.exists == False
+    file: path=/local/tmp state=directory owner=root group=root mode=1777

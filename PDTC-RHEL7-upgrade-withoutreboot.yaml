@@ -1,0 +1,89 @@
+---
+
+#Configure RedHat repos and upgrade hosts
+#Reboot,check diskspace, upgrade system, check that XenDesktopVDA has
+#been upgraded
+
+- name: PDTC RHEL 7 upgrade
+  hosts: localhost
+  tasks:
+
+    - name: Check preconditions
+      fail: msg="Incorrect OS release {{ ansible_os_family }} {{ ansible_distribution_version }}"
+      when: ansible_os_family != 'RedHat' 
+      #or ansible_distribution_version != upgrade_rel
+
+    - name: Schedule downtime in Check_Mk
+      uri:
+        url: "{{ api_url }}/view.py?filled_in=actions&_transid=-1&_do_actions=yes&actions=yes&host_regex={{ ansible_host }}&view_name=allhosts&_down_comment=Ansible+triggered+reboot+after+patching&_down_from_now=From+now+for&_down_minutes=90&_cusnot_comment=OS+and+Citrix+upgrade&_do_confirm=yes&_username={{ api_username }}&_secret={{ api_password }}"
+        method: GET
+        timeout: 10
+        validate_certs: no
+      no_log: true
+      ignore_errors: true
+
+    - name: Stopping services
+      service:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - ctxvda
+        - ctxhdx
+        - crond
+
+    - name: Get mounts
+      setup:
+        filter: ansible_mounts
+
+    - name: Test disk space available
+      vars:
+        minsize: 3221225472
+        partition: "/"
+      assert:
+        that: "item.size_available > {{ minsize }}"
+        msg: Bailing out, disk space needs attention.
+      with_items: '{{ ansible_mounts }}'
+      when: "item.mount ==  partition"
+
+    - name: Upgrade operating system first run
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+        exclude: XenDesktopVDA
+
+    - name: Run puppet second time
+      command: /opt/puppet/bin/puppet agent -t --color=false
+      register: puppet_out
+      failed_when: puppet_out.rc == 1
+      changed_when: puppet_out.rc > 1
+
+    - name: Upgrade operating system second run
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+        exclude: XenDesktopVDA
+
+    - name: Get package version after upgrade
+      yum:
+        list: XenDesktopVDA.x86_64
+      register: package_version_post
+      no_log: true
+
+    
+    - name: Set package version after upgrade
+      set_fact:
+        package_version_post: "{{ package_version_post.results|selectattr('yumstate','match','installed')|map(attribute='version')|list|first }}" 
+      no_log: true
+
+    - name: Fail when xendesktop hasn't been updated
+      fail: 
+        msg: "ERROR! XendesktopVDA was not updated: Version before update {{ package_version_pre }}, after update {{ package_version_post }}."
+      when: package_version_post == package_version_pre
+
+    - name: Reboot server
+      shell: 'sleep 1 && shutdown -r now "Triggered by Ansible" && sleep 1'
+      async: 1
+      poll: 0
+      ignore_errors: true

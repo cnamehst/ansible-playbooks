@@ -1,7 +1,7 @@
 ---
 
 - name: Update Linux operating system
-  hosts: all
+  hosts: localhost
   tasks:
     - name: Include OS family tasks
       include_tasks: "update-os-tasks/{{ ansible_os_family }}.yaml"

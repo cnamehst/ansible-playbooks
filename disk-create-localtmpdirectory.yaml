@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
 
-  - name: Check that the somefile.conf exists
+  - name: Check if /local exists
     stat:
       path: /local
     register: stat_result
@@ -17,3 +17,15 @@
       group: root
       mode: '1777'
     when: stat_result.stat.exists == True
+
+  - name: Ansible delete file glob
+    find:
+      paths: /local/tmp
+      patterns: hdx.*
+    register: files_to_delete
+
+  - name: Ansible remove file glob
+    file:
+      path: "{{ item.path }}"
+      state: absent
+    with_items: "{{ files_to_delete.files }}"
