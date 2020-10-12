@@ -1,0 +1,26 @@
+---
+
+filesystem:
+    fstype: ext2
+    dev: /dev/sdb1
+
+- name: Create a ext4 filesystem on /dev/sdb1 and check disk blocks
+  filesystem:
+    fstype: ext4
+    dev: /dev/sdb1
+    opts: -cc
+
+- name: 'Extend the FS'
+  filesystem:
+    fstype: 'ext4'
+    dev: '/dev/sda1'
+    resizefs: yes
+
+- name: Redimensionnement du volume logique
+  lvol:
+    lv: "{{ LV }}"
+    vg: "{{ VG }}"
+    size: "{{ size }}"
+    force: yes
+
+ansible-playbook -i hosts.ini playbook.yml -e size=20G -v

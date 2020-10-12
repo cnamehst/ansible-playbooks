@@ -1,0 +1,48 @@
+---
+
+- name: Resize and mount /local filesystem
+  hosts: all
+  tasks:
+    - name: Set device rescan flag
+      shell: echo 1 > /sys/class/block/{{ device_name }}/device/rescan
+
+    - name: install growpart RedHat
+      yum: name=cloud-utils-growpart state=latest
+      when: ansible_os_family == "CentOS" or ansible_os_family == "RedHat"
+
+    - name: install growpart Ubuntu
+      apt: pkg=cloud-guest-utils state=latest
+      when: ansible_os_family == "Ubuntu" or ansible_os_family == "Debian"
+
+    - name: install growpart SuSe
+      zypper: 
+        name: growpart 
+        state: latest
+      when: ansible_os_family == "Suse"
+
+    - name: Resize partition
+      shell: growpart /dev/{{ device_name }} {{ partition }}
+
+    - name: Run FSCK of filesystem
+      shell: fsck -fy /dev/{{ device_name }}{{ partition }}
+      when: ansible_facts['os_family'] == "CentOS" or ansible_facts['os_family'] == "RedHat" and ansible_facts['lsb']['major_release']|int == 6
+
+    - name: Resize filesystem
+      shell: fsadm -e -y resize /dev/{{ device_name }}{{ partition }}
+
+    - name: Enable access to /local folder
+      file:
+        path: /local
+        state: directory
+        mode: 1777
+
+    - name: Mount fstab filesystems
+      shell: mount -a
+      args:
+        warn: false
+
+    - name: Run puppet to fix perms and mounts
+      command: /opt/puppet/bin/puppet agent -t --color=false
+      register: puppet_output
+      failed_when: puppet_output.rc == 1
+      changed_when: puppet_output.rc > 1

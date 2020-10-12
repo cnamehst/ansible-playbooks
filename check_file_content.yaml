@@ -1,0 +1,10 @@
+- name: Check whether /tmp/my.conf contains "127.0.0.1"
+  command: grep -Fxq "127.0.0.1" /tmp/my.conf
+  register: checkmyconf
+  check_mode: no
+  ignore_errors: yes
+  changed_when: no
+
+- name: Greet the world if /tmp/my.conf contains "127.0.0.1"
+  debug: msg="Hello, world!"
+  when: checkmyconf.rc == 0
