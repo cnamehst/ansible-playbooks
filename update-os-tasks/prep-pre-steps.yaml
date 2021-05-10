@@ -1,0 +1,4 @@
+---
+
+- name: Include puppet-agent-disable
+  include_tasks: '../general-tasks/puppet-agent-disable.yaml'

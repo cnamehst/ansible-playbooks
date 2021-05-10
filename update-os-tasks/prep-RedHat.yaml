@@ -1,0 +1,13 @@
+---
+
+- name: "Update repository release to version {{ patch_level }}"
+  include_tasks: '../general-tasks/RedHat-update-repo-release.yaml'
+- name: Remove metadata for old repositories
+  file:
+    state: absent
+    path: /var/cache/yum
+- name: Pause to ensure yum update works
+  pause:
+    seconds: 2
+- name: Download the latest packages from repository # Ansible version too old to use download_only
+  shell: /usr/bin/yum update --downloadonly

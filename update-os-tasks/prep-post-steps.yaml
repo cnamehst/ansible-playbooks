@@ -1,0 +1,6 @@
+---
+
+- name: Include puppet-agent-enable
+  include_tasks: '../general-tasks/puppet-agent-enable.yaml'
+- name: Include puppet-agent-enabled
+  include_tasks: '../general-tasks/puppet-agent-enabled.yaml'
