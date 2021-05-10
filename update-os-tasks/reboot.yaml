@@ -1,14 +1,5 @@
 ---
 
-- name: Schedule downtime in Check_Mk
-  uri:
-    url: "{{ api_url }}/view.py?filled_in=actions&_transid=-1&_do_actions=yes&actions=yes&host_regex={{ ansible_host }}&view_name=allhosts&_down_comment=Ansible+triggered+reboot+after+patching&_down_from_now=From+now+for&_down_minutes=30&_cusnot_comment=Reboot+after+automatic+patching&_do_confirm=yes&_username={{ api_username }}&_secret={{ api_password }}"
-    method: GET
-    timeout: 10
-    validate_certs: no
-  no_log: True
-  ignore_errors: True
-
 - name: Reboot server
   shell: 'sleep 1 && shutdown -r now "Triggered by Ansible" && sleep 1'
   async: 1
