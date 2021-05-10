@@ -1,0 +1,8 @@
+---
+
+- name: Include puppet Info
+  include_tasks: general-tasks/puppet-info.yaml
+
+- name: Disable Puppet agent
+  shell: "{{ puppet_info.paths.bin }} agent -t --color=false --disable 'Ansible - {{ tower_job_template_name | default('') }} {{ tower_job_id | default('') }} - {{ puppet_disable_reason | default('Reason not specified') }}'"
+  when: puppet_info.paths.bin

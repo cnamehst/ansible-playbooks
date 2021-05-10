@@ -1,0 +1,17 @@
+---
+- name: Find files with release specified
+  find:
+    contains: '.*/\d+\.\d+.*'
+    paths: /etc/yum.repos.d
+  register: repofiles
+- name: Get repo target directory
+  set_fact:
+    patch_level: '{{ repo_targets[ansible_distribution][ansible_distribution_major_version] }}'
+  when: repo_targets[ansible_distribution] is defined and ansible_distribution_major_version in repo_targets[ansible_distribution]
+- name: Update repo files to current release
+  replace:
+    path: '{{ item.path }}'
+    regexp: '/\d+(\.\d+)+'
+    replace: '/{{ patch_level }}'
+  with_items: "{{ repofiles.files }}"
+  when: patch_level is defined

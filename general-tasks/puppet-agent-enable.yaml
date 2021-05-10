@@ -1,0 +1,8 @@
+---
+
+- name: Include puppet Info
+  include_tasks: general-tasks/puppet-info.yaml
+
+- name: Enable Puppet agent
+  shell: '{{ puppet_info.paths.bin }} agent --color=false --enable'
+  when: puppet_info.paths.bin

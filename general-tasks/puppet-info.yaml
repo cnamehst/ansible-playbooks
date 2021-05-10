@@ -1,0 +1,5 @@
+---
+
+- name: Get Puppet info
+  puppet_info:
+  register: puppet_info
